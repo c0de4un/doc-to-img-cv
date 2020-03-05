@@ -4,3 +4,6 @@
 [submodule "test"]
 	path = test
 	url = https://github.com/bystrobank/opencv-test-app.git
+[submodule "external/opencv_contrib"]
+	path = external/opencv_contrib
+	url = https://github.com/opencv/opencv_contrib.git

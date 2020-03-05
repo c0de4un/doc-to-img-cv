@@ -24,6 +24,10 @@
 // C++ I/O
 #include <iostream>
 
+// OpenCV AllInOne
+#include <opencv2/opencv.hpp>
+//#include <opencv/include/opencv2/opencv.hpp>
+
 // ===========================================================
 // CONSTANTS & FIELDS
 // ===========================================================

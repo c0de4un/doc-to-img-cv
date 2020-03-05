@@ -84,6 +84,16 @@ add_definitions ( -DQFT_USE_QT=1 )
 #find_package(Qt5 COMPONENTS Core Quick LinguistTools Qml QuickControls2 REQUIRED)
 
 # =================================================================================
+# LIBRARIES
+# =================================================================================
+
+# OpenCV
+set ( OpenCV_STATIC ON ) # Preffer STATIC Linking, but no guarantee
+set ( OpenCV_SHARED OFF ) # Disable usage of SHARED, useless due to package CMake API
+set ( OPENCV_WORLD OFF ) # In Theory, allows to use STATIC linking, but, in practice, still requires SHARED binaries
+find_package ( OpenCV REQUIRED ) # Supported on Windows thanks to vcpkg =^_^=
+
+# =================================================================================
 # HEADERS
 # =================================================================================
 
@@ -129,8 +139,11 @@ else ( ANDROID ) # Desktop (Mac, Windows, Linux)
 	
 endif ( ANDROID )
 
-# Link
-#
+# Link with OpenCV
+include_directories ( "${OpenCV_INCLUDE_DIRS}" )
+#target_include_directories ( itdcv PUBLIC ${OpenCV_INCLUDE_DIRS} )
+target_link_libraries ( itdcv ${OpenCV_LIBS} -static )
+message ( STATUS "OpenCV Libs: ${OpenCV_LIBS}" )
 
 target_compile_definitions( itdcv
         PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:Release>>:QT_QML_RELEASE> )
