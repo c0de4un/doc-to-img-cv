@@ -70,6 +70,9 @@ int minThresh = 255, maxThrash = 63, apertureSize = 3;
 /** Matrices. **/
 cv::Mat img_gry, img_bin;
 
+/** File-Path. **/
+std::string imagePath;
+
 // ===========================================================
 // METHODS
 // ===========================================================
@@ -108,9 +111,6 @@ void onTrackbar( int, void* )
 **/
 std::vector<cv::Point> getQuad( cv::Mat& inGrey )
 {
-    // Result Output
-    std::vector<cv::Point> result;
-
     // Polygon-Mask.
     cv::Mat approxPoly_mask(inGrey.rows, inGrey.cols, CV_8UC1);
     approxPoly_mask = cv::Scalar::all(0);
@@ -139,18 +139,43 @@ std::vector<cv::Point> getQuad( cv::Mat& inGrey )
     imshow("Poly-Mask", approxPoly_mask);
 
     // Return Rectangular Shape.
-    if ( polygon[0].size() >= 4 )
+    if ( polygon[0].size() >= 4 ) // Possible bug, in case of not clean object-contours.
     {
+
+        // Show Vertices of 1 poly.
+        img_gry = cv::imread( imagePath, cv::IMREAD_COLOR );
+        for( int n = 0; n < (int)polygon[0].size(); n++ )
+        {
+            cv::Point point_ = polygon[0][n];
+
+            cv::Scalar color_ = cv::Scalar( (std::rand() % 254), (std::rand() % 254), (std::rand() % 254) );
+            cv::circle( img_gry, point_, 10, color_, 2 );
+            //cv::drawMarker( img_gry, point_, color_ );
+        }
+        cv::imshow( "Vertices", img_gry );
+
         return polygon[0];
     }
 
-    return result;
+    return std::vector<cv::Point>();
 }
 
 int main( int pArgc, char* pArgv[] )
 {
 
-    /** Fast Connected Components Analyses **/
+    /** Check CMD **/
+    if ( pArgc < 2 )
+    {
+        std::cout << "ERROR: No input file path provided\nPress any key to quit. . ." << std::endl;
+        std::cin.get();
+
+        return itdcv_OK;
+    }
+    else
+    {
+        imagePath = pArgv[1];
+        std::cout << "Input file discovered: " << imagePath << std::endl;
+    }
 
     /** Canny + Retinex **/
 
@@ -172,11 +197,18 @@ int main( int pArgc, char* pArgv[] )
     cv::moveWindow( "Result", 321, 241 );
 
     // Greyscale Image.
-    cv::Mat img_gry = cv::imread( "testimage01.jpg", cv::IMREAD_GRAYSCALE );
+    cv::Mat img_gry = cv::imread( imagePath, cv::IMREAD_GRAYSCALE );
+    if ( img_gry.empty() )
+    {
+        std::cout << "ERROR: Image file not found !\nPress any key to quit. . ." << std::endl;
+        std::cin.get();
+
+        return itdcv_OK;
+    }
     cv::imshow( "Source", img_gry );
 
     // Blur
-    cv::GaussianBlur( img_gry, img_gry, cv::Size(5, 5), 0 );
+    //cv::GaussianBlur( img_gry, img_gry, cv::Size(5, 5), 0 );
 
     // Canny
     cv::Mat img_cny;
@@ -196,7 +228,7 @@ int main( int pArgc, char* pArgv[] )
         cv::Mat homography = findHomography(card_corners, std::vector<cv::Point>{cv::Point(warped_object.cols, warped_object.rows), cv::Point(0, warped_object.rows), cv::Point(0, 0), cv::Point(warped_object.cols, 0)});
 
         // Perspective transform.
-        cv::warpPerspective( img_gry, warped_object, homography, cv::Size(warped_object.cols, warped_object.rows) );
+        cv::warpPerspective( img_gry.clone(), warped_object, homography, cv::Size(warped_object.cols, warped_object.rows) );
     }
 
     // Show Perspective object result.
